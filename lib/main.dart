@@ -204,3 +204,8 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 }
+
+// TODO : add one image for each question
+// TODO : refactor code for cleaner architecture
+// TODO : add cupertino popup for ios and material for android
+// TODO : implement better design
