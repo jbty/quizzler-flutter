@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:quizzler/quiz_brain.dart';
 
 void main() => runApp(Quizzler());
+
+QuizBrain quizBrain = QuizBrain();
 
 class Quizzler extends StatelessWidget {
   @override
@@ -25,6 +28,95 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Widget> scoreKeeper = [];
+
+  int _userHp = 3;
+
+  int _userScore = 0;
+
+  void checkAnswer(bool userPickedAnswer) {
+    bool correctAnswers = quizBrain.getQuestionAnswer();
+
+    if (quizBrain.isEndGame()) {
+      _endGame();
+    }
+
+    setState(() {
+      if (userPickedAnswer == correctAnswers) {
+        quizBrain.nextQuestion();
+
+        _userScore++;
+
+        setState(() {
+          scoreKeeper.add(
+            Icon(
+              Icons.check,
+              color: Colors.green,
+            ),
+          );
+        });
+      } else {
+        decrementUserHp();
+      }
+    });
+  }
+
+  void resetQuiz() {
+    setState(() {
+      scoreKeeper.clear();
+      quizBrain.resetQuestionNumber();
+      _userHp = 3;
+      _userScore = 0;
+    });
+  }
+
+  void decrementUserHp() {
+    _userHp--;
+
+    if (_userHp == 0) {
+      _endGame();
+    } else {
+      scoreKeeper.add(
+        Icon(
+          Icons.close,
+          color: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _endGame() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Done !',
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  "Quiz is finish, your score is $_userScore/13",
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Retry'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                resetQuiz();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -32,12 +124,33 @@ class _QuizPageState extends State<QuizPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Expanded(
-          flex: 5,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Heath Points: $_userHp",
+                style: TextStyle(
+                  fontSize: 25.0,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                "Score: $_userScore",
+                style: TextStyle(
+                  fontSize: 25.0,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 6,
           child: Padding(
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -61,7 +174,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked true.
+                checkAnswer(true);
               },
             ),
           ),
@@ -79,19 +192,15 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked false.
+                checkAnswer(false);
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: scoreKeeper,
+        ),
       ],
     );
   }
 }
-
-/*
-question1: 'You can lead a cow down stairs but not up stairs.', false,
-question2: 'Approximately one quarter of human bones are in the feet.', true,
-question3: 'A slug\'s blood is green.', true,
-*/
