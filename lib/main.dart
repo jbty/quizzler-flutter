@@ -10,10 +10,27 @@ class Quizzler extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: Colors.purple,
+        appBar: AppBar(
+          backgroundColor: Colors.purple,
+          shadowColor: Colors.transparent,
+          title: Text(
+            "QUIZZ APP",
+            style: TextStyle(
+              fontFamily: "Pacifico",
+              fontSize: 22.0,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
         body: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            padding: EdgeInsets.only(
+              bottom: 20.0,
+              left: 20.0,
+              right: 20.0,
+            ),
             child: QuizPage(),
           ),
         ),
@@ -28,11 +45,32 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
-  List<Widget> scoreKeeper = [];
+  List<Widget> lifesKepper = [
+    Icon(
+      Icons.favorite,
+      color: Colors.purpleAccent.shade100,
+    ),
+    Icon(
+      Icons.favorite,
+      color: Colors.purpleAccent.shade100,
+    ),
+    Icon(
+      Icons.favorite,
+      color: Colors.purpleAccent.shade100,
+    ),
+    Icon(
+      Icons.favorite,
+      color: Colors.purpleAccent.shade100,
+    )
+  ];
 
-  int _userHp = 3;
+  int _userHp = 4;
 
   int _userScore = 0;
+
+  int _step = 1;
+
+  int _quizzLength = quizBrain.getQuestionsBank();
 
   void checkAnswer(bool userPickedAnswer) {
     bool correctAnswers = quizBrain.getQuestionAnswer();
@@ -43,45 +81,58 @@ class _QuizPageState extends State<QuizPage> {
 
     setState(() {
       if (userPickedAnswer == correctAnswers) {
-        quizBrain.nextQuestion();
-
         _userScore++;
-
-        setState(() {
-          scoreKeeper.add(
-            Icon(
-              Icons.check,
-              color: Colors.green,
-            ),
-          );
-        });
       } else {
         decrementUserHp();
       }
+
+      _step++;
+
+      quizBrain.nextQuestion();
     });
   }
 
   void resetQuiz() {
     setState(() {
-      scoreKeeper.clear();
       quizBrain.resetQuestionNumber();
-      _userHp = 3;
+      _step = 1;
+      _userHp = 4;
       _userScore = 0;
+      lifesKepper = [
+        Icon(
+          Icons.favorite,
+          color: Colors.purpleAccent.shade100,
+        ),
+        Icon(
+          Icons.favorite,
+          color: Colors.purpleAccent.shade100,
+        ),
+        Icon(
+          Icons.favorite,
+          color: Colors.purpleAccent.shade100,
+        ),
+        Icon(
+          Icons.favorite,
+          color: Colors.purpleAccent.shade100,
+        )
+      ];
     });
   }
 
   void decrementUserHp() {
     _userHp--;
 
+    lifesKepper.removeAt(0);
+
+    lifesKepper.add(
+      Icon(
+        Icons.favorite_border,
+        color: Colors.purpleAccent.shade100,
+      ),
+    );
+
     if (_userHp == 0) {
       _endGame();
-    } else {
-      scoreKeeper.add(
-        Icon(
-          Icons.close,
-          color: Colors.red,
-        ),
-      );
     }
   }
 
@@ -121,84 +172,105 @@ class _QuizPageState extends State<QuizPage> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              child: Row(
+                children: lifesKepper,
+              ),
+            ),
+            Text(
+              "Score : $_userScore",
+              style: TextStyle(
+                fontFamily: "Pacifico",
+                fontSize: 22.0,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 32.0,
+          ),
+          child: Column(
+            children: <Widget>[
               Text(
-                "Heath Points: $_userHp",
+                "Question $_step/$_quizzLength",
                 style: TextStyle(
-                  fontSize: 25.0,
+                  fontFamily: "Pacifico",
+                  fontSize: 50.0,
                   color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 40.0,
+                ),
+                child: Image(
+                  image: AssetImage(
+                    quizBrain.getQuestionImage(),
+                  ),
                 ),
               ),
               Text(
-                "Score: $_userScore",
+                quizBrain.getQuestionText(),
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 25.0,
+                  fontSize: 22.0,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
         ),
-        Expanded(
-          flex: 6,
-          child: Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Center(
-              child: Text(
-                quizBrain.getQuestionText(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 25.0,
-                  color: Colors.white,
-                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            FlatButton(
+              padding: EdgeInsets.symmetric(
+                vertical: 20.0,
+                horizontal: 30.0,
               ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.all(15.0),
-            child: FlatButton(
               textColor: Colors.white,
-              color: Colors.green,
+              color: Colors.purpleAccent,
               child: Text(
-                'True',
+                '🧐 Vrai',
                 style: TextStyle(
+                  fontFamily: "Pacifico",
                   color: Colors.white,
-                  fontSize: 20.0,
+                  fontSize: 30.0,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               onPressed: () {
                 checkAnswer(true);
               },
             ),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.all(15.0),
-            child: FlatButton(
-              color: Colors.red,
+            FlatButton(
+              padding: EdgeInsets.symmetric(
+                vertical: 20.0,
+                horizontal: 30.0,
+              ),
+              color: Colors.deepOrangeAccent,
               child: Text(
-                'False',
+                '😡 Faux',
                 style: TextStyle(
-                  fontSize: 20.0,
+                  fontFamily: "Pacifico",
+                  fontSize: 30.0,
                   color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               onPressed: () {
                 checkAnswer(false);
               },
             ),
-          ),
-        ),
-        Row(
-          children: scoreKeeper,
+          ],
         ),
       ],
     );
@@ -207,5 +279,6 @@ class _QuizPageState extends State<QuizPage> {
 
 // TODO : add one image for each question
 // TODO : refactor code for cleaner architecture
+// TODO : red background when user false and green when user ask good
 // TODO : add cupertino popup for ios and material for android
 // TODO : implement better design
