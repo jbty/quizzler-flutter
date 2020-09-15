@@ -1,3 +1,4 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:quizzler/quiz_brain.dart';
 
@@ -15,7 +16,7 @@ class Quizzler extends StatelessWidget {
           backgroundColor: Colors.purple,
           shadowColor: Colors.transparent,
           title: Text(
-            "QUIZZ APP",
+            "Q.I QUIZZ",
             style: TextStyle(
               fontFamily: "Pacifico",
               fontSize: 22.0,
@@ -45,6 +46,24 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  ConfettiController _controllerTopCenter;
+
+  @override
+  void initState() {
+    _controllerTopCenter = ConfettiController(
+      duration: const Duration(
+        seconds: 10,
+      ),
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controllerTopCenter.dispose();
+    super.dispose();
+  }
+
   List<Widget> lifesKepper = [
     Icon(
       Icons.favorite,
@@ -64,6 +83,8 @@ class _QuizPageState extends State<QuizPage> {
     )
   ];
 
+  bool showSuivBtn = false;
+
   int _userHp = 4;
 
   int _userScore = 0;
@@ -72,11 +93,92 @@ class _QuizPageState extends State<QuizPage> {
 
   int _quizzLength = quizBrain.getQuestionsBank();
 
+  bool _userAnswer;
+
+  List<Widget> toggleAnswer() {
+    if (!showSuivBtn) {
+      return [
+        FlatButton(
+          padding: EdgeInsets.symmetric(
+            vertical: 20.0,
+            horizontal: 30.0,
+          ),
+          textColor: Colors.white,
+          color: Colors.purpleAccent,
+          child: Text(
+            '🧐 Vrai',
+            style: TextStyle(
+              fontFamily: "Pacifico",
+              color: Colors.white,
+              fontSize: 30.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: () {
+            setState(() {
+              _userAnswer = true;
+            });
+
+            showSuivBtn = !showSuivBtn;
+          },
+        ),
+        FlatButton(
+          padding: EdgeInsets.symmetric(
+            vertical: 20.0,
+            horizontal: 30.0,
+          ),
+          color: Colors.deepOrangeAccent,
+          child: Text(
+            '😡 Faux',
+            style: TextStyle(
+              fontFamily: "Pacifico",
+              fontSize: 30.0,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: () {
+            setState(() {
+              _userAnswer = false;
+            });
+
+            showSuivBtn = !showSuivBtn;
+          },
+        ),
+      ];
+    } else {
+      return [
+        FlatButton(
+          padding: EdgeInsets.symmetric(
+            vertical: 20.0,
+            horizontal: 30.0,
+          ),
+          textColor: Colors.white,
+          color: Colors.purpleAccent,
+          child: Text(
+            'Suivant',
+            style: TextStyle(
+              fontFamily: "Pacifico",
+              color: Colors.white,
+              fontSize: 30.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: () {
+            checkAnswer(_userAnswer);
+            showSuivBtn = !showSuivBtn;
+          },
+        )
+      ];
+    }
+  }
+
   void checkAnswer(bool userPickedAnswer) {
     bool correctAnswers = quizBrain.getQuestionAnswer();
 
     if (quizBrain.isEndGame()) {
-      _endGame();
+      _endGame("You Win 😄");
+      _controllerTopCenter.play();
     }
 
     setState(() {
@@ -94,6 +196,7 @@ class _QuizPageState extends State<QuizPage> {
 
   void resetQuiz() {
     setState(() {
+      _controllerTopCenter.stop();
       quizBrain.resetQuestionNumber();
       _step = 1;
       _userHp = 4;
@@ -132,31 +235,64 @@ class _QuizPageState extends State<QuizPage> {
     );
 
     if (_userHp == 0) {
-      _endGame();
+      _endGame("Game Over 😢");
     }
   }
 
-  Future<void> _endGame() async {
+  String showQuestionOrAnswer() {
+    String isCorrect =
+        _userAnswer == quizBrain.getQuestionAnswer() ? "VRAI" : "FAUX";
+
+    return !showSuivBtn
+        ? quizBrain.getQuestionText()
+        : "$isCorrect: " + quizBrain.getAnswer();
+  }
+
+  Future<void> _endGame(String message) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.purple,
           title: Text(
-            'Done !',
+            message,
+            style: TextStyle(
+              fontFamily: "Pacifico",
+              fontSize: 30.0,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
-                  "Quiz is finish, your score is $_userScore/13",
+                  "Le quiz est terminer, votre score est de $_userScore/$_quizzLength",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22.0,
+                  ),
                 ),
               ],
             ),
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Retry'),
+              padding: EdgeInsets.symmetric(
+                vertical: 20.0,
+                horizontal: 30.0,
+              ),
+              color: Colors.purpleAccent,
+              child: Text(
+                'Recommencer',
+                style: TextStyle(
+                  fontFamily: "Pacifico",
+                  color: Colors.white,
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 resetQuiz();
@@ -192,6 +328,18 @@ class _QuizPageState extends State<QuizPage> {
             ),
           ],
         ),
+        ConfettiWidget(
+          confettiController: _controllerTopCenter,
+          blastDirection: 3.14 / 2,
+          maxBlastForce: 5,
+          // set a lower max blast force
+          minBlastForce: 2,
+          // set a lower min blast force
+          emissionFrequency: 0.05,
+          numberOfParticles: 50,
+          // a lot of particles at once
+          gravity: 1,
+        ),
         Padding(
           padding: EdgeInsets.only(
             bottom: 32.0,
@@ -218,7 +366,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               Text(
-                quizBrain.getQuestionText(),
+                showQuestionOrAnswer(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22.0,
@@ -228,57 +376,14 @@ class _QuizPageState extends State<QuizPage> {
             ],
           ),
         ),
+        SizedBox(),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            FlatButton(
-              padding: EdgeInsets.symmetric(
-                vertical: 20.0,
-                horizontal: 30.0,
-              ),
-              textColor: Colors.white,
-              color: Colors.purpleAccent,
-              child: Text(
-                '🧐 Vrai',
-                style: TextStyle(
-                  fontFamily: "Pacifico",
-                  color: Colors.white,
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                checkAnswer(true);
-              },
-            ),
-            FlatButton(
-              padding: EdgeInsets.symmetric(
-                vertical: 20.0,
-                horizontal: 30.0,
-              ),
-              color: Colors.deepOrangeAccent,
-              child: Text(
-                '😡 Faux',
-                style: TextStyle(
-                  fontFamily: "Pacifico",
-                  fontSize: 30.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                checkAnswer(false);
-              },
-            ),
-          ],
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: toggleAnswer(),
         ),
       ],
     );
   }
 }
 
-// TODO : add one image for each question
 // TODO : refactor code for cleaner architecture
-// TODO : red background when user false and green when user ask good
-// TODO : add cupertino popup for ios and material for android
-// TODO : implement better design
