@@ -4,10 +4,5 @@ class Question {
   bool questionAnswer;
   String image;
 
-  Question(String q, String a, bool qa, String i) {
-    questionText = q;
-    answer = a;
-    questionAnswer = qa;
-    image = i;
-  }
+  Question(String q, String a, bool qa, String i);
 }
