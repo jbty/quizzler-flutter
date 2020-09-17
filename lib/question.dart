@@ -4,5 +4,5 @@ class Question {
   bool questionAnswer;
   String image;
 
-  Question(String q, String a, bool qa, String i);
+  Question(this.questionText, this.answer, this.questionAnswer, this.image);
 }
