@@ -76,16 +76,12 @@ class _QuizPageState extends State<QuizPage> {
     Icon(
       Icons.favorite,
       color: Colors.purpleAccent.shade100,
-    ),
-    Icon(
-      Icons.favorite,
-      color: Colors.purpleAccent.shade100,
     )
   ];
 
   bool showSuivBtn = false;
 
-  int _userHp = 4;
+  int _userHp = 3;
 
   int _userScore = 0;
 
@@ -199,13 +195,9 @@ class _QuizPageState extends State<QuizPage> {
       _controllerTopCenter.stop();
       quizBrain.resetQuestionNumber();
       _step = 1;
-      _userHp = 4;
+      _userHp = 3;
       _userScore = 0;
       lifesKepper = [
-        Icon(
-          Icons.favorite,
-          color: Colors.purpleAccent.shade100,
-        ),
         Icon(
           Icons.favorite,
           color: Colors.purpleAccent.shade100,
@@ -240,8 +232,9 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   String showQuestionOrAnswer() {
-    String isCorrect =
-        _userAnswer == quizBrain.getQuestionAnswer() ? "VRAI" : "FAUX";
+    String isCorrect = _userAnswer == quizBrain.getQuestionAnswer()
+        ? "BONNE RÉPONSE"
+        : "MAUVAISE RÉPONSE";
 
     return !showSuivBtn
         ? quizBrain.getQuestionText()
